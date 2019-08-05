@@ -3,7 +3,11 @@ from collections import OrderedDict
 from datetime import datetime
 from string import Template
 
-REPORTS_ROOT = "./reports/"
+# Load path from environment
+if os.getenv('TELEMETER_REPORTER_SERVER_ROOT'):
+    REPORTS_ROOT = os.path.abspath(os.getenv('TELEMETER_REPORTER_SERVER_ROOT'))
+else:
+    REPORTS_ROOT = "./reports/"
 
 
 def http_403(env, start_response):
@@ -27,6 +31,7 @@ def index(env, start_response):
         if entry.is_dir():
             try:
                 # This call to strptime will throw ValueError if entry is not properly named
+
                 datetime.strptime(os.fsdecode(entry.name), "%Y-%m")
                 for subentry in os.scandir(os.fsencode(entry.path)):
                     if subentry.is_file() and os.fsdecode(subentry.name).endswith(".html"):
