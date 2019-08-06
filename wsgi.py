@@ -3,7 +3,7 @@ from collections import OrderedDict
 from datetime import datetime
 from string import Template
 
-from htmlmin.middleware import HTMLMinMiddleware
+import htmlmin
 
 # Load path from environment
 if os.getenv('TELEMETER_REPORTER_SERVER_ROOT'):
@@ -59,9 +59,11 @@ def index(env, start_response):
             file_index += "\t<li><a href='{0}.html'>{1}</a> (<a href='{0}.csv'>csv</a>)</li>\n".format(
                 path_no_ext, file)
         file_index += "</ul>\n"
-
+    output_unencoded = htmlmin.minify(
+        Template(index_template).safe_substitute(title='Foo', body=file_index),
+        remove_comments=True, remove_empty_space=True)
     start_response('200 OK', [('Content-Type', 'text/html')])
-    return [Template(index_template).safe_substitute(title='Foo', body=file_index).encode('utf-8')]
+    return [output_unencoded.encode('utf-8')]
 
 
 def latest(env, start_response):
@@ -111,7 +113,6 @@ ROUTES = {'': index, 'index': index, 'reports': reports, 'latest': latest}
 def application(env, start_response):
     path = env['PATH_INFO'].split('/')[1:]
     try:
-        return HTMLMinMiddleware(ROUTES[path[0]](env, start_response), remove_comments=True,
-                                 remove_empty_space=True)
+        return ROUTES[path[0]](env, start_response)
     except KeyError:
         return http_404(env, start_response)
