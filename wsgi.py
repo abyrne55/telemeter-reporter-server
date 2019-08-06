@@ -34,22 +34,25 @@ def index(env, start_response):
     file_dict = {}
 
     # Scan reports dir for file
-    for entry in os.scandir(os.fsencode(REPORTS_ROOT)):
-        if entry.is_dir():
-            try:
-                # This call to strptime will throw ValueError if entry is not properly named
+    try:
+        for entry in os.scandir(os.fsencode(REPORTS_ROOT)):
+            if entry.is_dir():
+                try:
+                    # This call to strptime will throw ValueError if entry is not properly named
 
-                datetime.strptime(os.fsdecode(entry.name), "%Y-%m")
-                for subentry in os.scandir(os.fsencode(entry.path)):
-                    if subentry.is_file() and os.fsdecode(subentry.name).endswith(".html"):
-                        dirname = os.fsdecode(entry.name)
-                        filename = os.fsdecode(subentry.name)
-                        try:
-                            file_dict[dirname].append(filename)
-                        except KeyError:
-                            file_dict[dirname] = [filename]
-            except ValueError:
-                pass
+                    datetime.strptime(os.fsdecode(entry.name), "%Y-%m")
+                    for subentry in os.scandir(os.fsencode(entry.path)):
+                        if subentry.is_file() and os.fsdecode(subentry.name).endswith(".html"):
+                            dirname = os.fsdecode(entry.name)
+                            filename = os.fsdecode(subentry.name)
+                            try:
+                                file_dict[dirname].append(filename)
+                            except KeyError:
+                                file_dict[dirname] = [filename]
+                except ValueError:
+                    pass
+    except FileNotFoundError:
+        return http_404(env, start_response)
 
     # Sort the dict
     file_dict = OrderedDict(sorted(file_dict.items(), key=lambda t: t[0], reverse=True))
