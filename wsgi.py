@@ -3,6 +3,8 @@ from collections import OrderedDict
 from datetime import datetime
 from string import Template
 
+from htmlmin.middleware import HTMLMinMiddleware
+
 # Load path from environment
 if os.getenv('TELEMETER_REPORTER_SERVER_ROOT'):
     REPORTS_ROOT = os.path.abspath(os.getenv('TELEMETER_REPORTER_SERVER_ROOT'))
@@ -109,6 +111,7 @@ ROUTES = {'': index, 'index': index, 'reports': reports, 'latest': latest}
 def application(env, start_response):
     path = env['PATH_INFO'].split('/')[1:]
     try:
-        return ROUTES[path[0]](env, start_response)
+        return HTMLMinMiddleware(ROUTES[path[0]](env, start_response), remove_comments=True,
+                                 remove_empty_space=True)
     except KeyError:
         return http_404(env, start_response)
