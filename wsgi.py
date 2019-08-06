@@ -12,6 +12,11 @@ else:
     REPORTS_ROOT = "./reports/"
 
 
+def http_200(env, start_response):
+    start_response('200 OK', [('Content-Type', 'text/html')])
+    return ['<h1>HTTP 200 OK</h1>\n'.encode('utf-8')]
+
+
 def http_403(env, start_response):
     start_response('403 Forbidden', [('Content-Type', 'text/html')])
     return ['<h1>Error 403: Forbidden</h1>\n'.encode('utf-8')]
@@ -107,7 +112,7 @@ def reports(env, start_response):
     return http_404(env, start_response)
 
 
-ROUTES = {'': index, 'index': index, 'reports': reports, 'latest': latest}
+ROUTES = {'': index, 'index': index, 'reports': reports, 'latest': latest, 'alive': http_200}
 
 
 def application(env, start_response):
